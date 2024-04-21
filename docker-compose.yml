@@ -11,5 +11,5 @@ services:
     ports:
       - 8086:8086
     volumes:
-      - ./dantenbank/daten:/var/lib/influxdb2
-      - ./dantenbank/config:/etc/influxdb2
+      - ./datenbank/daten:/var/lib/influxdb2
+      - ./datenbank/config:/etc/influxdb2

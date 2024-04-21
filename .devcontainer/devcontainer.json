@@ -12,7 +12,7 @@
 	"forwardPorts": [80, 8086],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "cd ./nodered && npm install && chmod -R 777 ./nodered",
+	"postCreateCommand": "cd ./nodered && npm install && chmod -R 777 ./nodered && chmod -R 777 ./datenbank",
 
 	// Configure tool-specific properties.
 	// "customizations": {},
