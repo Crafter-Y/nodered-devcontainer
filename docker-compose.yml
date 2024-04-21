@@ -1,0 +1,15 @@
+services:
+  nodered:
+    image: nodered/node-red:3.1.9
+    ports:
+      - 3000:1880
+      - 54840:54840
+    volumes:
+      - ./nodered:/data
+  datenbank:
+    image: influxdb:2.0
+    ports:
+      - 8086:8086
+    volumes:
+      - ./dantenbank/daten:/var/lib/influxdb2
+      - ./dantenbank/config:/etc/influxdb2

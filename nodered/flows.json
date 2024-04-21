@@ -1,0 +1,2100 @@
+[
+    {
+        "id": "dcf2c8f2c4f589a7",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "2e8c7f5c.ab73d",
+        "type": "tab",
+        "label": "OPC UA Server",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "a709c09ca59af8c0",
+        "type": "tab",
+        "label": "Machine Simulator",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "58767e227b73a208",
+        "type": "OpcUa-Endpoint",
+        "endpoint": "opc.tcp://localhost:54840",
+        "secpol": "None",
+        "secmode": "None",
+        "none": true,
+        "login": false,
+        "usercert": false,
+        "usercertificate": "",
+        "userprivatekey": ""
+    },
+    {
+        "id": "4e5fefbb679e7dbb",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "navigationStyle": "default"
+    },
+    {
+        "id": "887087af683918eb",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "ee12413aa0a4c47d",
+        "type": "ui-page",
+        "name": "SImulator Status",
+        "ui": "4e5fefbb679e7dbb",
+        "path": "/simulator",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "887087af683918eb",
+        "order": -1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "63fa389c2bb564fd",
+        "type": "ui-group",
+        "name": "SImulator",
+        "page": "ee12413aa0a4c47d",
+        "width": "6",
+        "height": "1",
+        "order": -1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "b4ebdf55b29cc412",
+        "type": "inject",
+        "z": "dcf2c8f2c4f589a7",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 120,
+        "wires": [
+            [
+                "dc9c877cf7db2c11"
+            ]
+        ]
+    },
+    {
+        "id": "dc9c877cf7db2c11",
+        "type": "function",
+        "z": "dcf2c8f2c4f589a7",
+        "name": "function 15",
+        "func": "flow.set(\"orders\", []);\nflow.set(\"queue\", []);",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "38ce10de.7d8c",
+        "type": "opcua-compact-server",
+        "z": "2e8c7f5c.ab73d",
+        "port": "54840",
+        "endpoint": "",
+        "productUri": "",
+        "acceptExternalCommands": true,
+        "maxAllowedSessionNumber": "100",
+        "maxConnectionsPerEndpoint": "100",
+        "maxAllowedSubscriptionNumber": "100",
+        "alternateHostname": "",
+        "name": "",
+        "showStatusActivities": false,
+        "showErrors": true,
+        "allowAnonymous": true,
+        "individualCerts": false,
+        "isAuditing": false,
+        "serverDiscovery": true,
+        "users": [],
+        "xmlsetsOPCUA": [],
+        "publicCertificateFile": "",
+        "privateCertificateFile": "",
+        "registerServerMethod": "1",
+        "discoveryServerEndpointUrl": "",
+        "capabilitiesForMDNS": "",
+        "maxNodesPerRead": 1000,
+        "maxNodesPerWrite": 1000,
+        "maxNodesPerHistoryReadData": 100,
+        "maxNodesPerBrowse": 3000,
+        "maxBrowseContinuationPoints": "10",
+        "maxHistoryContinuationPoints": "10",
+        "delayToInit": "1000",
+        "delayToClose": "200",
+        "serverShutdownTimeout": "100",
+        "addressSpaceScript": "function constructAlarmAddressSpace(server, addressSpace, eventObjects, done) {\n  node.warn(\"[OPCUA] Setting up address space\")\n\n  const opcua = coreServer.choreCompact.opcua;\n  const namespace = addressSpace.getOwnNamespace();\n\n  const Variant = opcua.Variant;\n  const DataType = opcua.DataType;\n  const DataValue = opcua.DataValue;\n\n  var flexServerInternals = this;\n\n  coreServer.debugLog(\"creating new address space \");\n\n  const rootFolder = addressSpace.findNode(\"RootFolder\");\n\n  node.warn(\"[OPCUA] construct new address space for OPC UA \");\n\n  // declare folders on server\n  const myDevice = namespace.addFolder(rootFolder.objects, {\n    \"browseName\": \"Simulator\"\n  });\n\n  const machineVariables = namespace.addFolder(myDevice, {\n    \"browseName\": \"Values\"\n  });\n\n  function addBoolean(name, defaultValue) {\n    this.sandboxFlowContext.set(name, defaultValue);\n\n    namespace.addVariable({\n      \"organizedBy\": machineVariables,\n      \"browseName\": name,\n      \"nodeId\": \"ns=1;s=\" + name,\n      \"dataType\": \"Boolean\",\n      \"value\": {\n        \"get\": function () {\n          return new Variant({\n            \"dataType\": DataType.Boolean,\n            \"value\": !!flexServerInternals.sandboxFlowContext.get(name)\n          });\n        },\n        \"set\": function (variant) {\n          flexServerInternals.sandboxFlowContext.set(\n            name,\n            variant.value\n          );\n          return opcua.StatusCodes.Good;\n        }\n      }\n    });\n\n  }\n\n  addBoolean(\"Ready\", true)\n  addBoolean(\"Working\", false)\n  addBoolean(\"Finished\", false)\n\n  addBoolean(\"RequestRed\", false)\n  addBoolean(\"RequestSilver\", false)\n  addBoolean(\"RequestBlack\", false)\n\n  coreServer.debugLog(\"create dynamic address space done\");\n  node.warn(\"[OPCUA] construction of new address space for OPC UA done\");\n\n  done();\n}\n",
+        "x": 300,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "6a783869054ada07",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 520,
+        "y": 140,
+        "wires": [
+            [
+                "4be6cb3f60c3b8f1"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "97e1b55e65e69f8c",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "ns=1;s=Ready;datatype=Boolean",
+        "payload": "",
+        "payloadType": "date",
+        "x": 310,
+        "y": 140,
+        "wires": [
+            [
+                "6a783869054ada07"
+            ]
+        ]
+    },
+    {
+        "id": "4be6cb3f60c3b8f1",
+        "type": "ui-led",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "group": "63fa389c2bb564fd",
+        "order": -1,
+        "width": 0,
+        "height": 0,
+        "label": "Ready (bereit für einen Auftrag)",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "states": [
+            {
+                "value": "false",
+                "valueType": "bool",
+                "color": "#ff0000"
+            },
+            {
+                "value": "true",
+                "valueType": "bool",
+                "color": "#00ff00"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showBorder": true,
+        "showGlow": true,
+        "x": 690,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "39c4949de9db0b8f",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "Sync status LED after 5 sek",
+        "info": "",
+        "x": 200,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "887b7a470a7b33df",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 520,
+        "y": 200,
+        "wires": [
+            [
+                "1eb455facbb7f63d"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "760e224e7cbf1093",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "ns=1;s=Working;datatype=Boolean",
+        "payload": "",
+        "payloadType": "date",
+        "x": 310,
+        "y": 200,
+        "wires": [
+            [
+                "887b7a470a7b33df"
+            ]
+        ]
+    },
+    {
+        "id": "1eb455facbb7f63d",
+        "type": "ui-led",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "group": "63fa389c2bb564fd",
+        "order": -1,
+        "width": 0,
+        "height": 0,
+        "label": "Working (Teil in Arbeit)",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "states": [
+            {
+                "value": "false",
+                "valueType": "bool",
+                "color": "#ff0000"
+            },
+            {
+                "value": "true",
+                "valueType": "bool",
+                "color": "#00ff00"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showBorder": true,
+        "showGlow": true,
+        "x": 690,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "3b353dae3412e33a",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 520,
+        "y": 260,
+        "wires": [
+            [
+                "4f633468e4d1493b"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "55be4313c3ee7785",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "ns=1;s=Finished;datatype=Boolean",
+        "payload": "",
+        "payloadType": "date",
+        "x": 310,
+        "y": 260,
+        "wires": [
+            [
+                "3b353dae3412e33a"
+            ]
+        ]
+    },
+    {
+        "id": "4f633468e4d1493b",
+        "type": "ui-led",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "group": "63fa389c2bb564fd",
+        "order": -1,
+        "width": 0,
+        "height": 0,
+        "label": "Finished",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "states": [
+            {
+                "value": "false",
+                "valueType": "bool",
+                "color": "#ff0000"
+            },
+            {
+                "value": "true",
+                "valueType": "bool",
+                "color": "#00ff00"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showBorder": true,
+        "showGlow": true,
+        "x": 690,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "b3865c386ce2ac65",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 520,
+        "y": 340,
+        "wires": [
+            [
+                "cca1a64dfcb2b8a4"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "77e63d8823760563",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "ns=1;s=RequestRed;datatype=Boolean",
+        "payload": "",
+        "payloadType": "date",
+        "x": 310,
+        "y": 340,
+        "wires": [
+            [
+                "b3865c386ce2ac65"
+            ]
+        ]
+    },
+    {
+        "id": "cca1a64dfcb2b8a4",
+        "type": "ui-led",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "group": "63fa389c2bb564fd",
+        "order": -1,
+        "width": 0,
+        "height": 0,
+        "label": "Rot angefragt",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "states": [
+            {
+                "value": "false",
+                "valueType": "bool",
+                "color": "#ff0000"
+            },
+            {
+                "value": "true",
+                "valueType": "bool",
+                "color": "#00ff00"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showBorder": true,
+        "showGlow": true,
+        "x": 690,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "b9105974c384f5ef",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 520,
+        "y": 400,
+        "wires": [
+            [
+                "d72407df22d8490b"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "b132ac90c1eb8dd2",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "ns=1;s=RequestSilver;datatype=Boolean",
+        "payload": "",
+        "payloadType": "date",
+        "x": 310,
+        "y": 400,
+        "wires": [
+            [
+                "b9105974c384f5ef"
+            ]
+        ]
+    },
+    {
+        "id": "d72407df22d8490b",
+        "type": "ui-led",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "group": "63fa389c2bb564fd",
+        "order": -1,
+        "width": 0,
+        "height": 0,
+        "label": "Silber angefragt",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "states": [
+            {
+                "value": "false",
+                "valueType": "bool",
+                "color": "#ff0000"
+            },
+            {
+                "value": "true",
+                "valueType": "bool",
+                "color": "#00ff00"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showBorder": true,
+        "showGlow": true,
+        "x": 690,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "391d23669bfb15f1",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 520,
+        "y": 460,
+        "wires": [
+            [
+                "f3c429b6856cb9b0"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "5b6184a70f593cc4",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "ns=1;s=RequestBlack;datatype=Boolean",
+        "payload": "",
+        "payloadType": "date",
+        "x": 310,
+        "y": 460,
+        "wires": [
+            [
+                "391d23669bfb15f1"
+            ]
+        ]
+    },
+    {
+        "id": "f3c429b6856cb9b0",
+        "type": "ui-led",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "group": "63fa389c2bb564fd",
+        "order": -1,
+        "width": 0,
+        "height": 0,
+        "label": "Schwarz angefragt",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "states": [
+            {
+                "value": "false",
+                "valueType": "bool",
+                "color": "#ff0000"
+            },
+            {
+                "value": "true",
+                "valueType": "bool",
+                "color": "#00ff00"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showBorder": true,
+        "showGlow": true,
+        "x": 690,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "61a7f659fb9d36fa",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "READY",
+        "info": "",
+        "x": 130,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "863f6036f7cb74a6",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "WORKING",
+        "info": "",
+        "x": 140,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "22cd89f121b60aa9",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "FINISHED",
+        "info": "",
+        "x": 140,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "9ad02843f744bf95",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "RED",
+        "info": "",
+        "x": 130,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "d061815a220164ab",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "SILVER",
+        "info": "",
+        "x": 130,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "584624c3fda3712c",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "BLACK",
+        "info": "",
+        "x": 130,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "e8a901b40fc71587",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "Logik",
+        "info": "",
+        "x": 990,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "be413c50b8f9710b",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "Wichtig: Es darf nur ein Produkt gleichzeitig angefragt werden!",
+        "info": "",
+        "x": 1310,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "94b8bce9555895e9",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "12",
+        "topic": "ns=1;s=RequestRed;datatype=Boolean",
+        "payload": "",
+        "payloadType": "date",
+        "x": 970,
+        "y": 200,
+        "wires": [
+            [
+                "ab7d39c4c0f8b42c"
+            ]
+        ]
+    },
+    {
+        "id": "ab7d39c4c0f8b42c",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 1160,
+        "y": 200,
+        "wires": [
+            [
+                "7a27ec486bdd2367"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "7a27ec486bdd2367",
+        "type": "switch",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1330,
+        "y": 200,
+        "wires": [
+            [
+                "03d78f0cc6803cc8",
+                "296d90546fa3b3b9",
+                "0ee737ba739fb3ef"
+            ]
+        ]
+    },
+    {
+        "id": "03d78f0cc6803cc8",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=Working",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "",
+        "x": 1850,
+        "y": 120,
+        "wires": [
+            [
+                "e50c5ceef794b02b"
+            ]
+        ]
+    },
+    {
+        "id": "22f7ce0f837621a7",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=Ready",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "",
+        "x": 1850,
+        "y": 180,
+        "wires": [
+            [
+                "e50c5ceef794b02b"
+            ]
+        ]
+    },
+    {
+        "id": "aac1cc3271ecbaba",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "Debugging",
+        "info": "",
+        "x": 140,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "8644dc50dc05dcfa",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 190,
+        "y": 780,
+        "wires": [
+            [
+                "92a3e048b7c295fb"
+            ]
+        ]
+    },
+    {
+        "id": "5767bb404e31ab35",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "write",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 700,
+        "y": 840,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "92a3e048b7c295fb",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=RequestRed",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "Request RED Item",
+        "x": 390,
+        "y": 780,
+        "wires": [
+            [
+                "5767bb404e31ab35"
+            ]
+        ]
+    },
+    {
+        "id": "0110c2417d7d5d2e",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=RequestRed",
+        "datatype": "Boolean",
+        "value": "false",
+        "name": "",
+        "x": 1850,
+        "y": 320,
+        "wires": [
+            [
+                "e50c5ceef794b02b"
+            ]
+        ]
+    },
+    {
+        "id": "e50c5ceef794b02b",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "write",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 2080,
+        "y": 260,
+        "wires": [
+            [
+                "43927af16982e57a",
+                "56b517b26a450701"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "296d90546fa3b3b9",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 1",
+        "func": "msg.payload = !msg.payload\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1660,
+        "y": 360,
+        "wires": [
+            [
+                "22f7ce0f837621a7",
+                "0110c2417d7d5d2e",
+                "c83c74d185b8a897",
+                "166bb36d37f6de43",
+                "37366b11abe1d69f"
+            ]
+        ]
+    },
+    {
+        "id": "048295d23b86aeab",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "Produktionsstatus initialisieren",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 250,
+        "y": 520,
+        "wires": [
+            [
+                "30a7c194efb2b6ef"
+            ]
+        ]
+    },
+    {
+        "id": "30a7c194efb2b6ef",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 2",
+        "func": "flow.set(\"producing\", \"nichts\")\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1520,
+        "y": 700,
+        "wires": [
+            [
+                "d293b7e78c5c1bcf"
+            ]
+        ]
+    },
+    {
+        "id": "0ee737ba739fb3ef",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 3",
+        "func": "flow.set(\"producing\", \"Rot\")\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1320,
+        "y": 260,
+        "wires": [
+            [
+                "d293b7e78c5c1bcf"
+            ]
+        ]
+    },
+    {
+        "id": "9ed263b6a9243f21",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "12",
+        "topic": "ns=1;s=RequestSilver;datatype=Boolean",
+        "payload": "",
+        "payloadType": "date",
+        "x": 970,
+        "y": 340,
+        "wires": [
+            [
+                "57773a6ec5568ced"
+            ]
+        ]
+    },
+    {
+        "id": "57773a6ec5568ced",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 1160,
+        "y": 340,
+        "wires": [
+            [
+                "553d7a3d7378bc6c"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "553d7a3d7378bc6c",
+        "type": "switch",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1330,
+        "y": 340,
+        "wires": [
+            [
+                "d3db1b59cd2060ba",
+                "03d78f0cc6803cc8",
+                "296d90546fa3b3b9"
+            ]
+        ]
+    },
+    {
+        "id": "d3db1b59cd2060ba",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 4",
+        "func": "flow.set(\"producing\", \"Silber\")\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1320,
+        "y": 400,
+        "wires": [
+            [
+                "d293b7e78c5c1bcf"
+            ]
+        ]
+    },
+    {
+        "id": "7e50cfcba05aed87",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "12",
+        "topic": "ns=1;s=RequestBlack;datatype=Boolean",
+        "payload": "",
+        "payloadType": "date",
+        "x": 970,
+        "y": 500,
+        "wires": [
+            [
+                "b280a124c35c7fb4"
+            ]
+        ]
+    },
+    {
+        "id": "b280a124c35c7fb4",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 1160,
+        "y": 500,
+        "wires": [
+            [
+                "e30d5de64a60034b"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "e30d5de64a60034b",
+        "type": "switch",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1330,
+        "y": 500,
+        "wires": [
+            [
+                "6e23d29ae8e05455",
+                "03d78f0cc6803cc8",
+                "296d90546fa3b3b9"
+            ]
+        ]
+    },
+    {
+        "id": "6e23d29ae8e05455",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 5",
+        "func": "flow.set(\"producing\", \"Schwarz\")\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1320,
+        "y": 560,
+        "wires": [
+            [
+                "d293b7e78c5c1bcf"
+            ]
+        ]
+    },
+    {
+        "id": "c83c74d185b8a897",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=RequestSilver",
+        "datatype": "Boolean",
+        "value": "false",
+        "name": "",
+        "x": 1850,
+        "y": 380,
+        "wires": [
+            [
+                "e50c5ceef794b02b"
+            ]
+        ]
+    },
+    {
+        "id": "166bb36d37f6de43",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=RequestBlack",
+        "datatype": "Boolean",
+        "value": "false",
+        "name": "",
+        "x": 1850,
+        "y": 440,
+        "wires": [
+            [
+                "e50c5ceef794b02b"
+            ]
+        ]
+    },
+    {
+        "id": "9b4c2b5518f24c6a",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 190,
+        "y": 840,
+        "wires": [
+            [
+                "585c5fa665212c3b"
+            ]
+        ]
+    },
+    {
+        "id": "585c5fa665212c3b",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=RequestSilver",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "Request SILVER Item",
+        "x": 400,
+        "y": 840,
+        "wires": [
+            [
+                "5767bb404e31ab35"
+            ]
+        ]
+    },
+    {
+        "id": "c39aa8048f334563",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 190,
+        "y": 900,
+        "wires": [
+            [
+                "10f57f17072b85ca"
+            ]
+        ]
+    },
+    {
+        "id": "10f57f17072b85ca",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=RequestBlack",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "Request BLACK Item",
+        "x": 400,
+        "y": 900,
+        "wires": [
+            [
+                "5767bb404e31ab35"
+            ]
+        ]
+    },
+    {
+        "id": "900b40677c709aa9",
+        "type": "delay",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "2",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 2480,
+        "y": 280,
+        "wires": [
+            [
+                "a521d29e1ab64cc1",
+                "efec1c1944ba97b1"
+            ]
+        ]
+    },
+    {
+        "id": "a521d29e1ab64cc1",
+        "type": "change",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2690,
+        "y": 240,
+        "wires": [
+            [
+                "182298359eaadaeb"
+            ]
+        ]
+    },
+    {
+        "id": "efec1c1944ba97b1",
+        "type": "change",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2690,
+        "y": 320,
+        "wires": [
+            [
+                "135201057a09e382"
+            ]
+        ]
+    },
+    {
+        "id": "111a6136d84fcb6e",
+        "type": "ui-text",
+        "z": "a709c09ca59af8c0",
+        "group": "63fa389c2bb564fd",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Status",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "className": "",
+        "x": 1890,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "d293b7e78c5c1bcf",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 6",
+        "func": "msg.payload = \"Ich produziere gerade: \" + flow.get(\"producing\")\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1720,
+        "y": 700,
+        "wires": [
+            [
+                "111a6136d84fcb6e"
+            ]
+        ]
+    },
+    {
+        "id": "135201057a09e382",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=Working",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "",
+        "x": 2890,
+        "y": 320,
+        "wires": [
+            [
+                "e6f708a3dc830788"
+            ]
+        ]
+    },
+    {
+        "id": "182298359eaadaeb",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=Finished",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "",
+        "x": 2890,
+        "y": 240,
+        "wires": [
+            [
+                "e6f708a3dc830788"
+            ]
+        ]
+    },
+    {
+        "id": "e6f708a3dc830788",
+        "type": "OpcUa-Client",
+        "z": "a709c09ca59af8c0",
+        "endpoint": "58767e227b73a208",
+        "action": "write",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "name": "",
+        "x": 3100,
+        "y": 280,
+        "wires": [
+            [
+                "30a7c194efb2b6ef"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "e6c1fb5e9139844b",
+        "type": "ui-gauge",
+        "z": "a709c09ca59af8c0",
+        "name": "Fortschritt",
+        "group": "63fa389c2bb564fd",
+        "order": 0,
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Fortschritt",
+        "units": "/10",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c"
+            },
+            {
+                "from": "5",
+                "color": "#ffc800"
+            },
+            {
+                "from": "10",
+                "color": "#ea5353"
+            }
+        ],
+        "min": 0,
+        "max": 10,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 3230,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "43927af16982e57a",
+        "type": "delay",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 2260,
+        "y": 540,
+        "wires": [
+            [
+                "c9fea681c8eef26f",
+                "7b5966b1862c7297"
+            ]
+        ]
+    },
+    {
+        "id": "c9fea681c8eef26f",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 7",
+        "func": "msg.payload = 1\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2440,
+        "y": 620,
+        "wires": [
+            [
+                "e6c1fb5e9139844b"
+            ]
+        ]
+    },
+    {
+        "id": "7b5966b1862c7297",
+        "type": "delay",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 2520,
+        "y": 540,
+        "wires": [
+            [
+                "6877adfcff7662c9",
+                "d27c8b039909a256"
+            ]
+        ]
+    },
+    {
+        "id": "6877adfcff7662c9",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 8",
+        "func": "msg.payload = 3\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2700,
+        "y": 620,
+        "wires": [
+            [
+                "e6c1fb5e9139844b"
+            ]
+        ]
+    },
+    {
+        "id": "d27c8b039909a256",
+        "type": "delay",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 2800,
+        "y": 540,
+        "wires": [
+            [
+                "e26cc044e1143c2d",
+                "6e889a3b096813f7"
+            ]
+        ]
+    },
+    {
+        "id": "e26cc044e1143c2d",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 9",
+        "func": "msg.payload = 5\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2980,
+        "y": 620,
+        "wires": [
+            [
+                "e6c1fb5e9139844b"
+            ]
+        ]
+    },
+    {
+        "id": "6e889a3b096813f7",
+        "type": "delay",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 3060,
+        "y": 540,
+        "wires": [
+            [
+                "56d56ec4ef641c7f",
+                "d28eb3cf0bc7ee2b"
+            ]
+        ]
+    },
+    {
+        "id": "56d56ec4ef641c7f",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 10",
+        "func": "msg.payload = 7\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 3240,
+        "y": 620,
+        "wires": [
+            [
+                "e6c1fb5e9139844b"
+            ]
+        ]
+    },
+    {
+        "id": "d28eb3cf0bc7ee2b",
+        "type": "delay",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 3320,
+        "y": 540,
+        "wires": [
+            [
+                "0ce638f853e63f00",
+                "74a58c0d481f592c"
+            ]
+        ]
+    },
+    {
+        "id": "0ce638f853e63f00",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 11",
+        "func": "msg.payload = 10\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 3500,
+        "y": 620,
+        "wires": [
+            [
+                "e6c1fb5e9139844b"
+            ]
+        ]
+    },
+    {
+        "id": "74a58c0d481f592c",
+        "type": "delay",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 3580,
+        "y": 540,
+        "wires": [
+            [
+                "f354ef92929490e9",
+                "900b40677c709aa9"
+            ]
+        ]
+    },
+    {
+        "id": "f354ef92929490e9",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 12",
+        "func": "msg.payload = 0\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 3760,
+        "y": 620,
+        "wires": [
+            [
+                "e6c1fb5e9139844b"
+            ]
+        ]
+    },
+    {
+        "id": "56b517b26a450701",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 13",
+        "func": "msg.payload = 0\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2170,
+        "y": 620,
+        "wires": [
+            [
+                "e6c1fb5e9139844b"
+            ]
+        ]
+    },
+    {
+        "id": "f66c76d870e003e3",
+        "type": "comment",
+        "z": "a709c09ca59af8c0",
+        "name": "Reset",
+        "info": "",
+        "x": 130,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "17767c850e6671fa",
+        "type": "inject",
+        "z": "a709c09ca59af8c0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 150,
+        "y": 1080,
+        "wires": [
+            [
+                "eedce9475b9dc046",
+                "ac0bef9bbb7a74c6"
+            ]
+        ]
+    },
+    {
+        "id": "51b9f983c04332c7",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=Finished",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "",
+        "x": 490,
+        "y": 1100,
+        "wires": [
+            [
+                "5767bb404e31ab35"
+            ]
+        ]
+    },
+    {
+        "id": "eedce9475b9dc046",
+        "type": "function",
+        "z": "a709c09ca59af8c0",
+        "name": "function 14",
+        "func": "msg.payload = false\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 1100,
+        "wires": [
+            [
+                "51b9f983c04332c7"
+            ]
+        ]
+    },
+    {
+        "id": "ac0bef9bbb7a74c6",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=Ready",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "",
+        "x": 490,
+        "y": 1060,
+        "wires": [
+            [
+                "5767bb404e31ab35"
+            ]
+        ]
+    },
+    {
+        "id": "37366b11abe1d69f",
+        "type": "OpcUa-Item",
+        "z": "a709c09ca59af8c0",
+        "item": "ns=1;s=Finished",
+        "datatype": "Boolean",
+        "value": "",
+        "name": "",
+        "x": 1850,
+        "y": 240,
+        "wires": [
+            [
+                "e50c5ceef794b02b"
+            ]
+        ]
+    }
+]
